@@ -19,10 +19,13 @@ void inserirDirArvore(Arvore* raiz, bool (*funcao)(const void*), void* target){
 }
 
 void percorrerArvore(Arvore* raiz){
-    if((raiz->esq == NULL && raiz->dir == NULL) || raiz == NULL) return;
+    if(raiz == NULL) return;
+
+    if(raiz->esq == NULL && raiz->dir == NULL){
+        raiz->funcao(raiz->target);
+        return;
+    }
 
     if(raiz->funcao(raiz->target)) percorrerArvore(raiz->esq);
-    else percorrerArvore(raiz->dir);
-
-    return;
+    else  percorrerArvore(raiz->dir);
 }

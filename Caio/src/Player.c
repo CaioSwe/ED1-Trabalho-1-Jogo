@@ -73,7 +73,7 @@ Player* Player_Init(Rectangle source, Rectangle destination, const char* spriteS
     player->stepDistance = 1.0f;
     player->characterChoice = false;
 
-    player->stats = (Stats){10.0f, 10.0f, 6.0f, 0.5f, 0.1f, false, false, 0, 0}; // Vida máxima, Vida, Ataque, Defesa, Evasão (Base), Repelente, Ouro
+    player->stats = (Stats){10.0f, 10.0f, 2.0f, 0.5f, 0.1f, 0.25f, false, false, 0, 0}; // Vida máxima, Vida, Ataque, Defesa, Evasão (Base), Repelente, Ouro
 
     player->inventario = (Inventario){criaLista()};
 
@@ -363,17 +363,16 @@ void Player_Draw(Player* player){
 /////////////////////////////////////////////////////////////////////////
 
 bool isLife50(Player* player){
-    return (player->stats.health >= 50);
+    return (player->stats.health >= player->stats.maxHealth*1/2);
 }
 
 bool isLife30(Player* player){
-    return (player->stats.health >= 30);
+    return (player->stats.health >= player->stats.maxHealth*3/10);
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 void Player_TakeDamage(Player* player, float damage){
-    player->stats.evasionRate = (player->stats.defending) ? player->stats.evasionRate + 0.05f : player->stats.evasionRate + (damage / player->stats.health);
     float finalDamage = (player->stats.defending) ? ((1 - player->stats.defense) * damage) : damage;
 
     player->stats.health -= finalDamage;
@@ -390,7 +389,8 @@ void Player_UpdateDef(Player* player, float newDef){
 }
 
 void Player_getHealing(Player* player, float heal){
-    player->stats.health += heal;
+    if(player->stats.health + heal > player->stats.maxHealth) player->stats.health = player->stats.maxHealth;
+    else player->stats.health += heal;
 }
 
 void Player_Print(Player* player){
@@ -463,6 +463,10 @@ bool Player_getLocked(Player* player){
     return player->locked;
 }
 
+Texture2D Player_getSprite(Player* player){
+    return player->spriteSheet;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 
 void Player_setAction(Player* player, Decision decision){
@@ -521,8 +525,16 @@ void Player_setAnimationFramesSpeed(Player* player, int frameSpeed){
     player->anim->frames.framesSpeed = frameSpeed;
 }
 
+void Player_setAnimationFramesDirection(Player* player, int direction){
+    player->anim->frames.animationDirection = direction;
+}
+
 void Player_setStats(Player* player, Stats stats){
     player->stats = stats;
+}
+
+void Player_setAttack(Player* player, float attack){
+    player->stats.attack = attack;
 }
 
 void Player_addGold(Player* player, int amount){
@@ -533,15 +545,25 @@ void Player_subRepelent(Player* player, int amount){
     player->stats.repelent = (player->stats.repelent >= amount) ? player->stats.repelent - amount : 0;
 }
 
+bool Player_tryRun(Player* player){
+    return (rand()%100 <= (int)(player->stats.evasionRate*100));
+}
+
+bool Player_dodged(Player* player){
+    return (rand()%100 <= (int)(player->stats.dodge*100));
+}
+
+//////////////////////////////////////////////////////////////////////
+
 void Player_InitList(){
     if(allPlayers == NULL) allPlayers = criaLista();
+}
+
+void freeTexture_Player(const void* item){
+    UnloadTexture(((const Player*)item)->spriteSheet);
 }
 
 void Player_Free(){
     percorrerLista(allPlayers, freeTexture_Player);
     limparLista(allPlayers, true);
 }
-
-void freeTexture_Player(const void* item){
-    UnloadTexture(((const Player*)item)->spriteSheet);
-} 
