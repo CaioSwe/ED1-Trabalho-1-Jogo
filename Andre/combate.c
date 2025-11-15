@@ -97,7 +97,7 @@ void defendFromEnemy(Player* p, Enemy* e, Pilha* s, Lista* l, int** mapa, int ta
     printf("ENEMY:\t%.2f", getEnemyHP(e));
     printf("\nPLAYER:\t%.2f", getPlayerHP(p));
 
-    printf("\n\nYou rise your shield, defending yourself");
+    
     float chance = rand() % 100 + 1;
     if(chance > getPlayerDodge(p)){
         printf("\n-%.2f", attack);

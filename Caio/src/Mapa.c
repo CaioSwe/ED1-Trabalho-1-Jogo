@@ -77,7 +77,7 @@ void criarMapa(int*** mapa, int tam){
     (*mapa)[10][8] = 2;
     (*mapa)[10][9] = 2;
 
-    if(LOG) printf("\nMap created!\n");
+    //if(LOG) printf("\nMap created!\n");
 }
 
 void populaMapa(int** mapa, int tam){

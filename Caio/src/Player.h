@@ -34,6 +34,7 @@ typedef struct Stats{
     float attack;
     float defense;
     float evasionRate;
+    float dodge;
 
     bool attacking;
     bool defending;
@@ -179,13 +180,19 @@ void Player_setAnimationFramesBaseSpeed(Player* player, int baseSpeed);
 
 void Player_setAnimationFramesSpeed(Player* player, int frameSpeed);
 
+void Player_setAnimationFramesDirection(Player* player, int direction);
+
 void Player_setStats(Player* player, Stats stats);
+
+void Player_setAttack(Player* player, float attack);
 
 void Player_addGold(Player* player, int amount);
 
 void Player_subRepelent(Player* player, int amount);
 
 bool Player_tryRun(Player* player);
+
+bool Player_dodged(Player* player);
 
 /////////////////////////////////////////////////////////////////////////////
 

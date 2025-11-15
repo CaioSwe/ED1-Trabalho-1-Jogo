@@ -64,7 +64,7 @@ Lista* traps;
 Lista* trapsReal;
 
 const char* SpritesPath = "sprites/";
-const char* TileSetSkin = "spriteMapas/Terra/";
+const char* TileSetSkin = "spriteMapas/Praia/";
 
 bool darkenMap = true;
 
@@ -185,6 +185,7 @@ void imprimirImageObjectProFW(const void* item, const void* target) {
 }
 
 void imprimirItensInventario(const void* item, const void* target, const void* p){
+    //printf("\n[imprimindo itens]");
     static int t = 0;
     
     const Item* obj = (const Item*)item;
@@ -217,7 +218,7 @@ void imprimirItensDescInventario(const void* item, const void* target){
         DrawText(getItemName((Item*)obj), mousePos.x, mousePos.y - 45.0f, 20, BLACK);
         DrawText(TextFormat("\n%s", getItemDescription((Item*)obj)), mousePos.x, mousePos.y - 45.0f, 20, BLACK);
 
-        if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) printf("\n%s", getItemDescription((Item*)obj)); // ITEM USAGE
+        //if(IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) printf("\n%s", getItemDescription((Item*)obj)); // ITEM USAGE
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) usarItem2(((Item*)obj), (Player*)player);
     }
 }
@@ -324,6 +325,16 @@ bool attackVoid(const void* item){
     return true;
 }
 
+bool healVoid(const void* item){
+    Player_setAction((Player*)item, HEAL);
+    return true;
+}
+
+bool defendVoid(const void* item){
+    Player_setDefense((Player*)item, true);
+    return true;
+}
+
 void upDownFunction(const void* item, const void* delta){
     ImageObject* image = (ImageObject*)item;
 
@@ -398,6 +409,13 @@ bool cutsceneListener(bool activate, float duration, float deltaTime, CutsceneFu
     }
 
     return false;
+}
+
+void displayLog(TextObject* textobj, const char* text, bool* observer, Color* overlay, Vector2 pos, Color color){
+    Text_Set(textobj, text);
+    Text_Pos(textobj, (Vector2){GetScreenWidth()/2 - MeasureText(textobj->text, textobj->fontsize)/2, pos.y});
+    *observer = true;
+    *overlay = color;
 }
 
 void generateGrass(Lista* lista, ImageObject* spriteSheet, Vector2 coords, float squareSize){
@@ -792,63 +810,6 @@ bool cameraAnimation(Camera2D* camera, Vector2 startPoint, Vector2 zoomPoint, fl
 
 #pragma endregion "Funcoes Uteis"
 
-int menuOpen(){
-    Button* restart = Button_Init("Reiniciar");
-    Button* homeButton = Button_Init("Voltar à tela inicial");
-    Button* exitButton = Button_Init("Sair");
-
-    float xButton = 0.5f;
-    float yButton = 0.5f;
-
-    Button_FitSizeToText(homeButton, 30, (Vector2){4, 20});
-
-    homeButton->x = (GetScreenWidth()*xButton - (homeButton->width)/2);
-    homeButton->y = (GetScreenHeight()*yButton) - (homeButton->height)/2;
-
-    Button_SetPattern(homeButton, (Pattern){WHITE, WHITE, WHITE, WHITE, BLACK});
-
-    Button_FitSizeToText(exitButton, 30, (Vector2){20, 20});
-
-    exitButton->x = (GetScreenWidth()*xButton - (exitButton->width)/2);
-    exitButton->y = homeButton->y + (homeButton->height + homeButton->padding.y) *1.3f;
-
-    Button_SetPattern(homeButton, (Pattern){(Color) {112, 21, 41, 255}, (Color) {112, 21, 41, 255}, WHITE, WHITE, BLACK});
-
-    Button_FitSizeToText(restart, 30, (Vector2){4, 20});
-
-    restart->x = (GetScreenWidth()*xButton - (restart->width)/2);
-    restart->y = homeButton->y - (homeButton->height + homeButton->padding.y) *1.3f;
-
-    Button_SetPattern(restart, (Pattern){WHITE, WHITE, WHITE, WHITE, BLACK});
-
-    while (!WindowShouldClose()) {
-        BeginDrawing();
-            ClearBackground(BLACK);
-            DrawRectangle(0,0,GetScreenWidth(), GetScreenHeight(), (Color) {0,0,0,150});
-
-            Button_Draw(restart);
-            Button_Draw(homeButton);
-            Button_Draw(exitButton);
-        EndDrawing();
-        
-        Vector2 mouse = GetMousePosition();
-
-        if(Button_IsPressed(restart, mouse)){
-            return 1;
-        }
-        if(Button_IsPressed(homeButton, mouse)){
-            return 2;
-        }
-        if(Button_IsPressed(exitButton, mouse)){
-            return 3;
-        }
-        if(IsKeyPressed(KEY_ESCAPE)){
-            return 0;
-        }
-    }
-    return 0;
-}
-
 GAMESTATE gameWon(Resources resources){
     TextObject* gameover = Text_Init("Congratulations!");
     
@@ -931,6 +892,8 @@ GAMESTATE gameWon(Resources resources){
 
     float t1 = 0, t2 = 0, t3 = 0;
 
+    Player_getHealing(resources.player, Player_getStats(resources.player).maxHealth);
+
     while(!WindowShouldClose()){
         float deltaTime = GetFrameTime();
         Vector2 mousePos = GetMousePosition();
@@ -940,7 +903,7 @@ GAMESTATE gameWon(Resources resources){
         totalElapsed += deltaTime;
 
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-            printf("\nx = %.1f, y = %.1f", mousePos.x, mousePos.y);
+            //printf("\nx = %.1f, y = %.1f", mousePos.x, mousePos.y);
         }
 
         if(Button_IsPressed(restart, mousePos) || IsKeyPressed(KEY_ONE)){
@@ -973,9 +936,9 @@ GAMESTATE gameWon(Resources resources){
                 outro = false;
                 buttons = true;
                 elapsed = 0;
-                system("cls");
-                printf("\nPress 1 to restart the game");
-                printf("\nPress 0 to exit the game\n");
+                //system("cls");
+                //printf("\nPress 1 to restart the game");
+                //printf("\nPress 0 to exit the game\n");
             }
         }
 
@@ -1145,6 +1108,7 @@ GAMESTATE gameOver(Resources resources){
 
     float t1 = 0, t2 = 0, t3 = 0;
 
+    Player_getHealing(resources.player, Player_getStats(resources.player).maxHealth);
 
     while(!WindowShouldClose()){
         float deltaTime = GetFrameTime();
@@ -1223,9 +1187,9 @@ GAMESTATE gameOver(Resources resources){
                 outro = false;
                 buttons = true;
                 elapsed = 0;
-                system("cls");
-                printf("\nPress 1 to restart the game");
-                printf("\nPress 0 to exit the game\n");
+                //system("cls");
+                //printf("\nPress 1 to restart the game");
+                //printf("\nPress 0 to exit the game\n");
             }
         }
 
@@ -1514,8 +1478,10 @@ GAMESTATE fightScreen(Resources resources){
 
     Arvore* enemyChoice = criaFolha(isLife50Void, enemy);
     inserirEsqArvore(enemyChoice, isLife30Void, player);
-    inserirDirArvore(enemyChoice, attackVoid, enemy);
-    inserirEsqArvore(enemyChoice->dir, attackVoid, enemy);
+    inserirDirArvore(enemyChoice, healVoid, enemy);
+
+    inserirEsqArvore(enemyChoice->esq, attackVoid, enemy);
+    inserirDirArvore(enemyChoice->esq, defendVoid, enemy);
 
     bool switchTurns = false;
     Turn whoseTurn = {false, false, true, false};
@@ -1604,14 +1570,20 @@ GAMESTATE fightScreen(Resources resources){
 
     toggleHealthBar->colors = showStats->colors;
 
-    bool showHealthBar = true;
-    bool displayRunState = false;
+    static bool showHealthBar = true;
+    bool displayInfo = false;
+    bool hasRan = false;
+    bool dodged = false;
+    bool dodgedWhileDefending = false;
+    bool ignoreAction = false;
 
-    Color runOverlay = {255, 0, 0, 0};
+    Decision ignoredAction = ATTACK;
 
-    TextObject* runInfo = Text_Init("");
+    Color infoOverlay = {255, 0, 0, 0};
 
-    runInfo->fontsize = 30;
+    TextObject* infoMessage = Text_Init("");
+
+    infoMessage->fontsize = 20;
 
     const char* defaultRun = "You've tried to escape the encounter... ";
     const char* successRun = "and succeded!";
@@ -1626,6 +1598,13 @@ GAMESTATE fightScreen(Resources resources){
         resources.cursor->y = mousePos.y;
 
         totalElapsed += deltaTime;
+
+        float baseInfoHeight = showStats->y + showStats->height + showStats->padding.y*3;
+
+        if(ignoreAction && Player_getAction(player) != ignoredAction){
+            ignoreAction = false;
+            playerTookAction = false;
+        }
 
         playerDestRec = Player_getDestRec(player);
         enemyDestRec = Player_getDestRec(enemy);
@@ -1653,6 +1632,8 @@ GAMESTATE fightScreen(Resources resources){
 
         confettiAnimState = SpriteSheet_UpdateSprite(confetti, false, false);
 
+        dodged = false;
+
         if(Player_getAction(enemy) == DEAD && enemyAnimState.animationEnd){
             SpriteSheet_setAnimationFramesAnimating(confetti, true);
         }
@@ -1662,7 +1643,7 @@ GAMESTATE fightScreen(Resources resources){
         }
         else if(enemyAnimState.animationEnd){
             if(enemyTookAction && enemyAnimState.animationEnd){
-                if(LOG) printf("\nEnemy switched turns..");
+                //if(LOG) printf("\nEnemy switched turns..");
                 switchTurns = true;
                 enemyTookAction = false;
             }
@@ -1679,14 +1660,18 @@ GAMESTATE fightScreen(Resources resources){
                 percorrerArvore(enemyChoice);
                 enemyTookAction = true;
             }
+
+            if(enemyStats.defending){
+                Player_setAction(enemy, DEFEND);
+            }
         }
 
         if(playerTookDamage.hurt && !playerStats.defending){
             Player_setAction(player, HURT);
         }
         else if(playerAnimState.animationEnd){
-            if(playerTookAction && playerAnimState.animationEnd && whoseTurn.animationBool){
-                if(LOG) printf("\nPlayer Switched Turns...");
+            if(playerTookAction && playerAnimState.animationEnd && whoseTurn.animationBool && !ignoreAction){
+                //if(LOG) printf("\nPlayer Switched Turns...");
                 switchTurns = true;
             }
             if(Player_getAnimationPositionAnimating(player)){
@@ -1701,13 +1686,31 @@ GAMESTATE fightScreen(Resources resources){
             if(playerStats.defending){
                 Player_setAction(player, DEFEND);
             }
+
+            if(dodgedWhileDefending){
+                Player_setAction(player, ATTACK);
+                dodgedWhileDefending = false;
+                ignoreAction = true;
+                displayLog(infoMessage, "You manage to find a small opening to retaliate!", &displayInfo, &infoOverlay, (Vector2){0, baseInfoHeight}, BLUE);
+            }
         }
 
         switch(enemyDecision){
             case ATTACK:
                 Player_ChangeSprite(enemy, 12, 0);
                 if(!enemyHasAttacked){
-                    Player_TakeDamage(player, enemyStats.attack);
+                    dodged = Player_dodged(player);
+
+                    if(!dodged) Player_TakeDamage(player, enemyStats.attack);
+                    else{
+                        if(playerStats.defending){
+                            dodgedWhileDefending = true;
+                            //printf("\nDodged while defending");
+                        }
+
+                        displayLog(infoMessage, "You've dodged the enemy's attack!", &displayInfo, &infoOverlay, (Vector2){0, baseInfoHeight}, GREEN);
+                    }
+
                     enemyHasAttacked = true;
                 }
                 loopEnemy = false;
@@ -1730,9 +1733,13 @@ GAMESTATE fightScreen(Resources resources){
                 break;
             case HEAL:
                 if(!enemyHasAttacked){
-                    Player_getHealing(enemy, 2.0f);
+                    Player_getHealing(enemy, 1.0f);
                     enemyHasAttacked = true;
                 }
+                break;
+            case DEFEND:
+                Player_ChangeSprite(enemy, 12, 2);
+                loopEnemy = true;
                 break;
             default: // Run IDLE
                 Player_ChangeSprite(enemy, 4, 3);
@@ -1810,21 +1817,21 @@ GAMESTATE fightScreen(Resources resources){
         }
 
         if(Button_IsPressed(run, mousePos) && whoseTurn.animationBool && !playerTookAction){
-            bool hasRan = Player_tryRun(player);
+            hasRan = Player_tryRun(player);
 
-            displayRunState = true;
+            displayInfo = true;
             playerTookAction = true;
 
             if(hasRan){
-                runOverlay = (Color){0, 255, 0, 0};
-                Text_Set(runInfo, TextFormat("%s%s", defaultRun, successRun));
+                infoOverlay = GREEN;
+                Text_Set(infoMessage, TextFormat("%s%s", defaultRun, successRun));
             }
             else{
-                runOverlay = (Color){255, 0, 0, 0};
-                Text_Set(runInfo, TextFormat("%s%s", defaultRun, failedRun));
+                infoOverlay = RED;
+                Text_Set(infoMessage, TextFormat("%s%s", defaultRun, failedRun));
             }
 
-            Text_Pos(runInfo, (Vector2){GetScreenWidth()/2 - MeasureText(runInfo->text, runInfo->fontsize)/2, 0 + runInfo->fontsize*3/2});
+            Text_Pos(infoMessage, (Vector2){GetScreenWidth()/2 - MeasureText(infoMessage->text, infoMessage->fontsize)/2, baseInfoHeight});
         }
 
         if(inventoryAnimation.animationBool && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !CheckCollisionPointRec(mousePos, inventoryBackground->destination)){
@@ -1881,13 +1888,6 @@ GAMESTATE fightScreen(Resources resources){
                 Image_DrawPro(healthBarSprite);
                 Image_DrawPro(healthBarFillerP);
                 Image_DrawPro(healthBarSpriteP);
-            }
-
-            if(IsKeyPressed(KEY_ESCAPE)){
-                int retural = menuOpen();
-                if(retural == 3){
-                    CloseWindow();
-                }
             }
 
             if(!introduction2 && introduction){
@@ -1995,20 +1995,27 @@ GAMESTATE fightScreen(Resources resources){
                         Player_setDefense(player, false);
                         finishLoopPlayer = true;
                     }
-                    else finishLoopPlayer = false;
+                    else{
+                        Player_setDefense(enemy, false);
+                        finishLoopPlayer = false;
+                    }
                 }
             }
 
-            if(displayRunState){
-                runOverlay.a = 240;
-                displayRunState = false;
+            if(displayInfo){
+                infoOverlay.a = 240;
+                displayInfo = false;
             }
 
-            if(runOverlay.a > 0) runOverlay.a -= 3;
+            if(infoOverlay.a == 0 && hasRan){
+                return FREE;
+            }
 
-            runInfo->color = runOverlay;
+            if(infoOverlay.a > 0) infoOverlay.a -= 3;
 
-            Text_DrawS(runInfo);
+            infoMessage->color = infoOverlay;
+
+            Text_DrawS(infoMessage);
 
             if(cameraZoomIn && doZoom){            
                 bool w = cameraAnimation(&camera, (Vector2){GetScreenWidth()/2, GetScreenHeight()/2}, (Vector2){enemyDestRec.x + enemyDestRec.width/2, enemyDestRec.y + enemyDestRec.height/2}, deltaTime);
@@ -2265,7 +2272,7 @@ GAMESTATE telaJogo(Resources resources){
         }
     }
 
-    printMapa(mapa, TAM);
+    //(mapa, TAM);
 
     bool triggerCutscene = false;
 
@@ -2364,7 +2371,7 @@ GAMESTATE telaJogo(Resources resources){
 
         Player_setAnimationFramesAnimating(player, altUpdateSprite);
 
-        if(IsKeyPressed(KEY_M)) printMapa(mapa, TAM);
+        //if(IsKeyPressed(KEY_M)) printMapa(mapa, TAM);
 
         if(chestAnimation.animationBool){
             if((Button_IsPressed(getItem, mouseposW) || IsKeyPressed(getItemKey)) && !chestShowing){
@@ -2398,11 +2405,6 @@ GAMESTATE telaJogo(Resources resources){
         }
 
         camera.target = (Vector2){playerDestRec.x + playerDestRec.width/2, playerDestRec.y + playerDestRec.height/2};
-
-        if(IsKeyPressed(KEY_ESCAPE)){
-            int returnal = menuOpen();
-            if(returnal == 3) CloseWindow();
-        }
 
         Vector2 coords = Player_GetCoords(player);
 
@@ -2479,7 +2481,7 @@ GAMESTATE telaJogo(Resources resources){
         }
         if(collidedWithTrap){
             Player_TakeDamage(player, 1.5f);
-            if(LOG) printf("\nOuch.. stepped on a trap\n");
+            //if(LOG) printf("\nOuch.. stepped on a trap\n");
             collidedWithTrap = false;
             trapAnimation = true;
         }
@@ -2702,9 +2704,12 @@ int main(){
 
     grainOverlay->color = (Color){255, 255, 255, 10};
 
+    Player_setAttack(player, 2.5f);
+    Player_setAttack(enemy, 1.0f);
+
     Resources resources = {player, enemy, squaresize, &playerCoordsSave, mapa, cursor, grainOverlay, 255};
 
-    GAMESTATE gamestate = GAMEWON;
+    GAMESTATE gamestate = MAINSCREEN;
 
     initAllLists();
 
@@ -2736,7 +2741,6 @@ int main(){
                 break;
         }
         resources.opacity = 255;
-        freeAllLists();
     }
 
     freeAllLists();
@@ -2751,7 +2755,7 @@ int main(){
     free(cursor);
     free(grainOverlay);
     
-    printf("\n\nFreed all instances\n\n");
+    //printf("\n\nFreed all instances\n\n");
 
     return 0;
 }

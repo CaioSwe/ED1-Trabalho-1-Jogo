@@ -7,7 +7,7 @@
 #define MAX_STRSIZE 100
 #define MAX_FRAMES 100
 
-#define TAM 20
+#define TAM 100
 
 static bool LOG = false;
 
